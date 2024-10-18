@@ -95,7 +95,7 @@ def vision(
     provider,
     stats,
 ):
-    """Convert PDF to Markdown using OCR and vision language models."""
+    """Convert PDF to Markdown using vision language models."""
     config = get_config()
     provider = provider or config.get("provider", "openai")
     model = model or config.get("model")
