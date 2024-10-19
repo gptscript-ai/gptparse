@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union, Any
 from uuid import UUID
 from tqdm.auto import tqdm
 from langchain_core.callbacks import BaseCallbackHandler
@@ -13,6 +13,11 @@ class BatchCallback(BaseCallbackHandler):
             total=total, desc=f"Reading pages using {ai_model}", unit="page"
         )
         self.parent_run_id: Optional[UUID] = None
+
+    def on_llm_error(
+        self, error: Union[Exception, KeyboardInterrupt], **kwargs: Any
+    ) -> Any:
+        self.progress_bar.close()
 
     def on_llm_end(
         self,

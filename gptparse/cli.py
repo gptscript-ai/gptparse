@@ -1,29 +1,11 @@
 import click
 from .modes.vision import vision as vision_function
 from .config import get_config, set_config, print_config
+from gptparse.models.model_interface import PROVIDER_MODELS
 import re
 import os
-
-PROVIDER_MODELS = {
-    "openai": {"default": "gpt-4o", "options": ["gpt-4o", "gpt-4o-mini"]},
-    "anthropic": {
-        "default": "claude-3-5-sonnet-20240620",
-        "options": [
-            "claude-3-5-sonnet-20240620",
-            "claude-3-opus-20240229",
-            "claude-3-sonnet-20240229",
-            "claude-3-haiku-20240307",
-        ],
-    },
-    "google": {
-        "default": "gemini-1.5-pro-002",
-        "options": [
-            "gemini-1.5-pro-002",
-            "gemini-1.5-flash-002",
-            "gemini-1.5-flash-8b",
-        ],
-    },
-}
+import sys
+import textwrap
 
 
 def pretty_print_markdown(markdown_content):
@@ -61,6 +43,24 @@ def pretty_print_markdown(markdown_content):
     )
 
     return markdown_content
+
+
+def format_authentication_error(error_message, provider):
+    return textwrap.dedent(
+        f"""
+        {error_message}
+
+        Please check the following:
+        - Ensure your API key for {provider.capitalize()} is correct.
+        - Verify that the API key is properly set in your environment variables.
+        - Check your account status and API key validity.
+
+        API Key Management:
+        - OpenAI: https://platform.openai.com/account/api-keys
+        - Anthropic: https://console.anthropic.com/settings/keys
+        - Google (Gemini): https://makersuite.google.com/app/apikey
+    """
+    ).strip()
 
 
 @click.group()
@@ -108,7 +108,7 @@ def vision(
                     "Error: Output file must have a .md or .txt extension", fg="red"
                 )
             )
-            return
+            sys.exit(1)
 
     try:
         result = vision_function(
@@ -120,45 +120,55 @@ def vision(
             select_pages=select_pages,
             provider=provider,
         )
-    except ValueError as e:
-        click.echo(click.style(f"Error: {str(e)}", fg="red"))
-        return
 
-    if output_file:
-        click.echo(f"Output saved to {output_file}")
-    else:
-        multiple_pages = len(result.pages) > 1
-        for page in result.pages:
-            if multiple_pages:
-                click.echo(
-                    click.style(f"---Page {page.page} Start---", fg="yellow", bold=True)
-                )
-            click.echo(pretty_print_markdown(page.content))
-            if multiple_pages:
-                click.echo(
-                    click.style(f"---Page {page.page} End---", fg="yellow", bold=True)
-                )
-            click.echo("\n")
+        if result.error:
+            raise Exception(result.error)
 
-    if stats:
-        click.echo(click.style("Detailed Statistics:", fg="blue", bold=True))
-        click.echo(f"File Path: {file_path}")
-        click.echo(f"Completion Time: {result.completion_time:.2f} seconds")
-        click.echo(f"Total Pages Processed: {len(result.pages)}")
-        click.echo(f"Total Input Tokens: {result.input_tokens}")
-        click.echo(f"Total Output Tokens: {result.output_tokens}")
-        click.echo(f"Total Tokens: {result.input_tokens + result.output_tokens}")
+        if output_file:
+            click.echo(f"Output saved to {output_file}")
+        else:
+            multiple_pages = len(result.pages) > 1
+            for page in result.pages:
+                if multiple_pages:
+                    click.echo(
+                        click.style(
+                            f"---Page {page.page} Start---", fg="cyan", bold=True
+                        )
+                    )
+                click.echo(pretty_print_markdown(page.content))
+                if multiple_pages:
+                    click.echo(
+                        click.style(f"---Page {page.page} End---", fg="cyan", bold=True)
+                    )
+                click.echo("\n")
 
-        avg_tokens_per_page = (
-            (result.input_tokens + result.output_tokens) / len(result.pages)
-            if result.pages
-            else 0
-        )
-        click.echo(f"Average Tokens per Page: {avg_tokens_per_page:.2f}")
+        if stats:
+            click.echo(click.style("Detailed Statistics:", fg="blue", bold=True))
+            click.echo(f"File Path: {file_path}")
+            click.echo(f"Completion Time: {result.completion_time:.2f} seconds")
+            click.echo(f"Total Pages Processed: {len(result.pages)}")
+            click.echo(f"Total Input Tokens: {result.input_tokens}")
+            click.echo(f"Total Output Tokens: {result.output_tokens}")
+            click.echo(f"Total Tokens: {result.input_tokens + result.output_tokens}")
 
-        click.echo("\nPage-wise Statistics:")
-        for page in result.pages:
-            click.echo(f"  Page {page.page}: {page.output_tokens} tokens")
+            avg_tokens_per_page = (
+                (result.input_tokens + result.output_tokens) / len(result.pages)
+                if result.pages
+                else 0
+            )
+            click.echo(f"Average Tokens per Page: {avg_tokens_per_page:.2f}")
+
+            click.echo("\nPage-wise Statistics:")
+            for page in result.pages:
+                click.echo(f"  Page {page.page}: {page.output_tokens} tokens")
+
+    except Exception as e:
+        error_message = str(e)
+        if "authentication error" in error_message.lower():
+            error_message = format_authentication_error(error_message, provider)
+
+        click.echo(click.style(f"Error: {error_message}", fg="red"))
+        sys.exit(1)
 
 
 @main.command()

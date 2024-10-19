@@ -60,14 +60,22 @@ pip install gptparse
 Ensure you have the following installed:
 
 - **Python 3.9** or higher
-- **Poppler**: For PDF to image conversion (used by `pdf2image`)
+- **Poppler**: For PDF to image conversion
 
-Install Poppler:
+#### Installing Poppler
+
+Poppler is the underlying project that handles PDF processing. You can check if you already have it installed by running `pdftoppm -h` in your terminal/command prompt.
 
 - **Ubuntu/Debian**:
 
   ```bash
   sudo apt-get install poppler-utils
+  ```
+
+- **Arch Linux**:
+
+  ```bash
+  sudo pacman -S poppler
   ```
 
 - **macOS (with Homebrew)**:
@@ -78,7 +86,12 @@ Install Poppler:
 
 - **Windows**:
 
-  Download the latest binaries from [Poppler for Windows](http://blog.alivate.com.au/poppler-windows/) and add the `bin/` folder to your system `PATH`.
+  1. Download the latest poppler package from [oschwartz10612's version](https://github.com/oschwartz10612/poppler-windows/releases/), which is the most up-to-date.
+  2. Extract the downloaded package and move the extracted directory to your desired location.
+  3. Add the `bin/` directory from the extracted folder to your [system PATH](https://www.architectryan.com/2018/03/17/add-to-the-path-on-windows-10/).
+  4. Verify the installation by opening a new command prompt and running `pdftoppm -h`.
+
+After installing Poppler, you should be ready to use GPTParse.
 
 ## Quick Start
 
