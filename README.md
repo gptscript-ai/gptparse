@@ -152,13 +152,13 @@ Enter new values or press Enter to keep the current values.
 Current values are shown in [brackets].
 
 AI Provider [openai]: anthropic
-Default Model for anthropic [claude-3-5-sonnet-20240620]: claude-3-opus-20240229
+Default Model for anthropic [claude-3-5-sonnet-latest]: claude-3-opus-latest
 Default Concurrency [10]: 5
 Configuration updated successfully.
 
 Current configuration:
   provider: anthropic
-  model: claude-3-opus-20240229
+  model: claude-3-opus-latest
   concurrency: 5
 ```
 
@@ -234,8 +234,8 @@ GPTParse supports multiple models from different AI providers.
 
 ### Anthropic Models
 
-- `claude-3-5-sonnet-20240620` (Default)
-- `claude-3-opus-20240229`
+- `claude-3-5-sonnet-latest` (Default)
+- `claude-3-opus-latest`
 - `claude-3-sonnet-20240229`
 - `claude-3-haiku-20240307`
 
