@@ -80,7 +80,7 @@ def main():
 @click.option(
     "--custom_system_prompt", help="Custom system prompt for the language model."
 )
-@click.option("--select_pages", help="Pages to process (e.g., '1,3-5,10').")
+@click.option("--select_pages", help="Pages to process (e.g., '1,3-5,10'). Only applicable for PDFs.")
 @click.option("--provider", help="AI provider to use (openai, anthropic, or google).")
 @click.option(
     "--stats", is_flag=True, help="Display detailed statistics after processing."
@@ -95,7 +95,7 @@ def vision(
     provider,
     stats,
 ):
-    """Convert PDF to Markdown using vision language models."""
+    """Convert PDF or image files to Markdown using vision language models."""
     config = get_config()
     provider = provider or config.get("provider", "openai")
     model = model or config.get("model")
@@ -109,6 +109,17 @@ def vision(
                 )
             )
             sys.exit(1)
+
+    _, input_ext = os.path.splitext(file_path)
+    input_ext = input_ext.lower()
+
+    if input_ext not in (".pdf", ".png", ".jpg", ".jpeg"):
+        click.echo(
+            click.style(
+                "Error: Input file must be a PDF or image file (PNG, JPG)", fg="red"
+            )
+        )
+        sys.exit(1)
 
     try:
         result = vision_function(

@@ -20,11 +20,12 @@ from ..utils.callbacks import BatchCallback
 from ..utils.image_utils import resize_image
 from ..utils.pdf_utils import split_pdf_into_chunks
 from ..models.model_interface import PROVIDER_MODELS
+from ..handlers import get_handler
 
 setup_logging()
 
 
-def parse_page_selection(select_pages: str) -> List[int]:
+def parse_page_selection(select_pages: str, total_pages: int) -> List[int]:
     if not select_pages:
         return []
     pages = []
@@ -34,7 +35,7 @@ def parse_page_selection(select_pages: str) -> List[int]:
             pages.extend(range(start, end + 1))
         else:
             pages.append(int(part))
-    return [p - 1 for p in pages]
+    return [p - 1 for p in pages if p < total_pages]
 
 
 def vision(
@@ -48,41 +49,31 @@ def vision(
 ) -> GPTParseOutput:
     try:
         start_time = time.time()
+
+        # Get the appropriate handler for the file
+        handler = get_handler(file_path)
+
+        # Get images from the file
+        images = handler.get_images()
+
+        # Warn about page selection for non-PDF files
+        if select_pages and not handler.is_multi_page:
+            logging.warning("Page selection is only supported for PDF files. Ignoring.")
+            select_pages = None
+
+        # Process pages/images
+        pages_to_process = (
+            parse_page_selection(select_pages, len(images))
+            if select_pages
+            else range(len(images))
+        )
+
         config = get_config()
         provider = provider or config.get("provider", "openai")
         model = model or config.get("model") or PROVIDER_MODELS[provider]["default"]
 
         ai_model = model_interface.get_model(provider, model)
         warnings.filterwarnings("ignore", category=Image.DecompressionBombWarning)
-
-        pages_to_process = parse_page_selection(select_pages) if select_pages else None
-
-        try:
-            pdf_chunks = split_pdf_into_chunks(file_path)
-            images = []
-            with tqdm(
-                total=len(pdf_chunks),
-                desc="Checking input document pages",
-                unit="chunk",
-            ) as pbar:
-                for chunk in pdf_chunks:
-                    chunk_images = convert_from_bytes(
-                        chunk, thread_count=min(4, concurrency), dpi=300
-                    )
-                    images.extend(chunk_images)
-                    pbar.update(1)
-        except Exception as e:
-            logging.error(f"Error converting PDF to images: {str(e)}")
-            return GPTParseOutput(
-                file_path=os.path.abspath(file_path),
-                provider=provider,
-                model=model,
-                completion_time=0,
-                input_tokens=0,
-                output_tokens=0,
-                pages=[],
-                error=str(e),
-            )
 
         total_pages = len(images)
 
@@ -193,7 +184,15 @@ def vision(
                 for page in result.pages:
                     if multiple_pages:
                         f.write(f"---Page {page.page} Start---\n\n")
-                    f.write(f"{page.content}\n\n")
+                    # Remove any surrounding backticks and 'markdown' language identifier
+                    content = page.content.strip()
+                    if content.startswith("```markdown"):
+                        content = content[len("```markdown") :].strip()
+                    elif content.startswith("```"):
+                        content = content[3:].strip()
+                    if content.endswith("```"):
+                        content = content[:-3].strip()
+                    f.write(f"{content}\n\n")
                     if multiple_pages:
                         f.write(f"---Page {page.page} End---\n\n")
 
