@@ -1,22 +1,26 @@
 # GPTParse
 
-GPTParse is a powerful and versatile document parser designed specifically for Retrieval-Augmented Generation (RAG) systems. It enables seamless conversion of PDF documents into Markdown format using advanced vision language models (VLMs), facilitating easy integration into text-based workflows and applications.
+GPTParse is a powerful and versatile document parser designed specifically for Retrieval-Augmented Generation (RAG) systems. It enables seamless conversion of PDF documents and images into Markdown format using advanced vision language models (VLMs), facilitating easy integration into text-based workflows and applications.
 
 With GPTParse, you can:
 
-- Convert complex PDFs, including those with tables, lists, and images, into well-structured Markdown.
+- Convert complex PDFs and images, including those with tables, lists, and embedded images, into well-structured Markdown.
 - Choose from multiple AI providers like OpenAI, Anthropic, and Google, leveraging their state-of-the-art models.
 - Use GPTParse as a Python library or via a command-line interface (CLI), offering flexibility in how you integrate it into your projects.
 
 It's as simple as:
 
 ```bash
+# Convert a PDF
 gptparse vision example.pdf --output_file output.md
+
+# Convert an image
+gptparse vision screenshot.png --output_file output.md
 ```
 
 ## Features
 
-- **Convert PDFs to Markdown**: Transform PDF documents into Markdown format, preserving the structure and content, including tables, lists, and images.
+- **Convert PDFs and Images to Markdown**: Transform PDF documents and image files (PNG, JPG, JPEG) into Markdown format, preserving the structure and content.
 - **Multiple Parsing Methods**: Choose between using Vision Language Models (VLMs) for high-fidelity conversion or traditional OCR methods (coming soon).
 - **Support for Multiple AI Providers**: Seamlessly integrate with OpenAI, Anthropic, and Google AI models, selecting the one that best fits your needs.
 - **Python Library and CLI Application**: Use GPTParse within your Python applications or interact with it through the command line.
@@ -213,7 +217,7 @@ This command will process `example.pdf` using the OpenAI provider and save the o
 - `--model`: Vision language model to use (overrides configured default).
 - `--output_file`: Output file name (must have a `.md` or `.txt` extension). If not specified, output will be printed to the console.
 - `--custom_system_prompt`: Custom system prompt for the language model.
-- `--select_pages`: Pages to process (e.g., `"1,3-5,10"`).
+- `--select_pages`: Pages to process (e.g., `"1,3-5,10"`). Only applicable for PDF files.
 - `--provider`: AI provider to use (`openai`, `anthropic`, `google`) (overrides configured default).
 - `--stats`: Display detailed statistics after processing.
 
@@ -306,6 +310,23 @@ Page-wise Statistics:
   Page 4: 800 tokens
   Page 5: 400 tokens
 ```
+
+### Processing Images
+
+To process an image file:
+
+```bash
+# Process a PNG file
+gptparse vision screenshot.png --output_file output.md
+
+# Process a JPG file
+gptparse vision photo.jpg --output_file output.md
+```
+
+Supported image formats:
+
+- PNG
+- JPG/JPEG
 
 ## Contributing
 
