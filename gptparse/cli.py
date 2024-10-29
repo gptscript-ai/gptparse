@@ -226,5 +226,83 @@ def configure():
     print_config()
 
 
+@main.command()
+@click.argument("file_path", type=click.Path(exists=True, resolve_path=True))
+@click.option(
+    "--output_file",
+    help="Output file name (with .md or .txt extension). If not specified, output will be printed.",
+)
+@click.option("--select_pages", help="Pages to process (e.g., '1,3-5,10')")
+@click.option(
+    "--stats", is_flag=True, help="Display basic statistics after processing."
+)
+def fast(
+    file_path,
+    output_file,
+    select_pages,
+    stats,
+):
+    """Convert PDF files to Markdown using fast local processing (no AI)."""
+    if output_file:
+        _, ext = os.path.splitext(output_file)
+        if ext.lower() not in (".md", ".txt"):
+            click.echo(
+                click.style(
+                    "Error: Output file must have a .md or .txt extension", fg="red"
+                )
+            )
+            sys.exit(1)
+
+    _, input_ext = os.path.splitext(file_path)
+    input_ext = input_ext.lower()
+
+    if input_ext not in (".pdf", ".txt"):
+        click.echo(
+            click.style(
+                "Error: Input file must be a PDF or text file", fg="red"
+            )
+        )
+        sys.exit(1)
+
+    try:
+        from .modes.fast import fast as fast_function
+        result = fast_function(
+            file_path=file_path,
+            output_file=output_file,
+            select_pages=select_pages,
+        )
+
+        if result.error:
+            raise Exception(result.error)
+
+        if output_file:
+            click.echo(f"Output saved to {output_file}")
+        else:
+            multiple_pages = len(result.pages) > 1
+            for page in result.pages:
+                if multiple_pages:
+                    click.echo(
+                        click.style(
+                            f"---Page {page.page} Start---", fg="cyan", bold=True
+                        )
+                    )
+                click.echo(pretty_print_markdown(page.content))
+                if multiple_pages:
+                    click.echo(
+                        click.style(f"---Page {page.page} End---", fg="cyan", bold=True)
+                    )
+                click.echo("\n")
+
+        if stats:
+            click.echo(click.style("Processing Statistics:", fg="blue", bold=True))
+            click.echo(f"File Path: {file_path}")
+            click.echo(f"Completion Time: {result.completion_time:.2f} seconds")
+            click.echo(f"Total Pages Processed: {len(result.pages)}")
+
+    except Exception as e:
+        click.echo(click.style(f"Error: {str(e)}", fg="red"))
+        sys.exit(1)
+
+
 if __name__ == "__main__":
     main()
