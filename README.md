@@ -1,18 +1,21 @@
 # GPTParse
 
-GPTParse is a powerful and versatile document parser designed specifically for Retrieval-Augmented Generation (RAG) systems. It enables seamless conversion of PDF documents and images into Markdown format using advanced vision language models (VLMs), facilitating easy integration into text-based workflows and applications.
+GPTParse is a powerful and versatile document parser designed specifically for Retrieval-Augmented Generation (RAG) systems. It enables seamless conversion of PDF documents and images into Markdown format using either advanced vision language models (VLMs) or fast local processing, facilitating easy integration into text-based workflows and applications.
 
 With GPTParse, you can:
 
 - Convert complex PDFs and images, including those with tables, lists, and embedded images, into well-structured Markdown.
-- Choose from multiple AI providers like OpenAI, Anthropic, and Google, leveraging their state-of-the-art models.
+- Choose between AI-powered processing (using OpenAI, Anthropic, or Google) or fast local processing.
 - Use GPTParse as a Python library or via a command-line interface (CLI), offering flexibility in how you integrate it into your projects.
 
 It's as simple as:
 
 ```bash
-# Convert a PDF
+# Convert a PDF using Vision Language Models
 gptparse vision example.pdf --output_file output.md
+
+# Convert a PDF using fast local processing (no VLM or internet connection required)
+gptparse fast example.pdf --output_file output.md
 
 # Convert an image
 gptparse vision screenshot.png --output_file output.md
@@ -21,7 +24,7 @@ gptparse vision screenshot.png --output_file output.md
 ## Features
 
 - **Convert PDFs and Images to Markdown**: Transform PDF documents and image files (PNG, JPG, JPEG) into Markdown format, preserving the structure and content.
-- **Multiple Parsing Methods**: Choose between using Vision Language Models (VLMs) for high-fidelity conversion or traditional OCR methods (coming soon).
+- **Multiple Parsing Methods**: Choose between using Vision Language Models (VLMs) for high-fidelity conversion or fast local processing for quick results without AI.
 - **Support for Multiple AI Providers**: Seamlessly integrate with OpenAI, Anthropic, and Google AI models, selecting the one that best fits your needs.
 - **Python Library and CLI Application**: Use GPTParse within your Python applications or interact with it through the command line.
 - **Customizable Processing Options**: Configure concurrency levels, select specific pages to process, and customize system prompts to tailor the output.
@@ -38,7 +41,8 @@ gptparse vision screenshot.png --output_file output.md
   - [Configuration](#configuration)
   - [Using GPTParse as a Python Package](#using-gptparse-as-a-python-package)
   - [Using GPTParse via the CLI](#using-gptparse-via-the-cli)
-    - [CLI Options](#cli-options)
+    - [Vision Mode](#vision-mode)
+    - [Fast Mode](#fast-mode)
 - [Available Models and Providers](#available-models-and-providers)
   - [OpenAI Models](#openai-models)
   - [Anthropic Models](#anthropic-models)
@@ -105,8 +109,11 @@ Here's how you can quickly get started with GPTParse:
 # Set your API key
 export OPENAI_API_KEY="your-openai-api-key"
 
-# Convert a PDF to Markdown
+# Convert a PDF to Markdown using Vision Language Models
 gptparse vision example.pdf --output_file output.md
+
+# Convert a PDF to Markdown using fast local processing (no VLM or internet connection required)
+gptparse fast example.pdf --output_file output.md
 ```
 
 ## Usage
@@ -173,9 +180,8 @@ Below is an example of how to use GPTParse in your Python code:
 ```python
 import os
 
-# Set the appropriate API key
+# For AI-powered vision processing
 os.environ["OPENAI_API_KEY"] = "your-openai-api-key"
-
 from gptparse.modes.vision import vision
 
 result = vision(
@@ -188,6 +194,15 @@ result = vision(
     provider="openai",
 )
 
+# For fast local processing (no AI required)
+from gptparse.modes.fast import fast
+
+result = fast(
+    file_path="example.pdf",
+    output_file="output.md",
+    select_pages=None,
+)
+
 # Access the result
 print(f"Processed {len(result.pages)} pages in {result.completion_time:.2f} seconds.")
 for page in result.pages:
@@ -197,35 +212,36 @@ for page in result.pages:
 
 ### Using GPTParse via the CLI
 
-When using the command-line interface, ensure you've set the appropriate environment variables.
+When using the command-line interface, you have two modes available:
+
+1. **Vision Mode** - Uses AI models for high-quality conversion:
 
 ```bash
 export OPENAI_API_KEY="your-openai-api-key"
-```
-
-To convert a PDF file to Markdown:
-
-```bash
 gptparse vision example.pdf --output_file output.md --provider openai
 ```
 
-This command will process `example.pdf` using the OpenAI provider and save the output to `output.md`.
+2. **Fast Mode** - Uses local processing for quick conversion (no AI required):
 
-#### CLI Options
+```bash
+gptparse fast example.pdf --output_file output.md
+```
+
+#### Vision Mode Options
 
 - `--concurrency`: Number of concurrent processes (default: value set in configuration or 10).
 - `--model`: Vision language model to use (overrides configured default).
-- `--output_file`: Output file name (must have a `.md` or `.txt` extension). If not specified, output will be printed to the console.
+- `--output_file`: Output file name (must have a `.md` or `.txt` extension).
 - `--custom_system_prompt`: Custom system prompt for the language model.
 - `--select_pages`: Pages to process (e.g., `"1,3-5,10"`). Only applicable for PDF files.
-- `--provider`: AI provider to use (`openai`, `anthropic`, `google`) (overrides configured default).
+- `--provider`: AI provider to use (`openai`, `anthropic`, `google`).
 - `--stats`: Display detailed statistics after processing.
 
-Example with additional options:
+#### Fast Mode Options
 
-```bash
-gptparse vision example.pdf --select_pages "1,3-5" --stats --output_file result.md
-```
+- `--output_file`: Output file name (must have a `.md` or `.txt` extension).
+- `--select_pages`: Pages to process (e.g., `"1,3-5,10"`). Only applicable for PDF files.
+- `--stats`: Display basic processing statistics.
 
 ## Available Models and Providers
 
