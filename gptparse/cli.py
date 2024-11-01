@@ -80,7 +80,10 @@ def main():
 @click.option(
     "--custom_system_prompt", help="Custom system prompt for the language model."
 )
-@click.option("--select_pages", help="Pages to process (e.g., '1,3-5,10'). Only applicable for PDFs.")
+@click.option(
+    "--select_pages",
+    help="Pages to process (e.g., '1,3-5,10'). Only applicable for PDFs.",
+)
 @click.option("--provider", help="AI provider to use (openai, anthropic, or google).")
 @click.option(
     "--stats", is_flag=True, help="Display detailed statistics after processing."
@@ -258,14 +261,13 @@ def fast(
 
     if input_ext not in (".pdf", ".txt"):
         click.echo(
-            click.style(
-                "Error: Input file must be a PDF or text file", fg="red"
-            )
+            click.style("Error: Input file must be a PDF or text file", fg="red")
         )
         sys.exit(1)
 
     try:
         from .modes.fast import fast as fast_function
+
         result = fast_function(
             file_path=file_path,
             output_file=output_file,
@@ -301,6 +303,106 @@ def fast(
 
     except Exception as e:
         click.echo(click.style(f"Error: {str(e)}", fg="red"))
+        sys.exit(1)
+
+
+@main.command()
+@click.option("--concurrency", default=10, help="Number of concurrent processes.")
+@click.argument("file_path", type=click.Path(exists=True, resolve_path=True))
+@click.option("--model", help="Vision language model to use.")
+@click.option(
+    "--output_file",
+    help="Output file name (with .md or .txt extension). If not specified, output will be printed.",
+)
+@click.option(
+    "--custom_system_prompt", help="Custom system prompt for the language model."
+)
+@click.option(
+    "--select_pages",
+    help="Pages to process (e.g., '1,3-5,10'). Only applicable for PDFs.",
+)
+@click.option("--provider", help="AI provider to use (openai, anthropic, or google).")
+@click.option(
+    "--stats", is_flag=True, help="Display detailed statistics after processing."
+)
+def hybrid(
+    concurrency,
+    file_path,
+    model,
+    output_file,
+    custom_system_prompt,
+    select_pages,
+    provider,
+    stats,
+):
+    """Convert PDF files using fast local processing followed by AI enhancement."""
+    if output_file:
+        _, ext = os.path.splitext(output_file)
+        if ext.lower() not in (".md", ".txt"):
+            click.echo(
+                click.style(
+                    "Error: Output file must have a .md or .txt extension", fg="red"
+                )
+            )
+            sys.exit(1)
+
+    _, input_ext = os.path.splitext(file_path)
+    input_ext = input_ext.lower()
+
+    if input_ext not in (".pdf", ".txt"):
+        click.echo(
+            click.style("Error: Input file must be a PDF or text file", fg="red")
+        )
+        sys.exit(1)
+
+    try:
+        from .modes.hybrid import hybrid as hybrid_function
+
+        result = hybrid_function(
+            concurrency=concurrency,
+            file_path=file_path,
+            model=model,
+            output_file=output_file,
+            custom_system_prompt=custom_system_prompt,
+            select_pages=select_pages,
+            provider=provider,
+        )
+
+        if result.error:
+            raise Exception(result.error)
+
+        if output_file:
+            click.echo(f"Output saved to {output_file}")
+        else:
+            multiple_pages = len(result.pages) > 1
+            for page in result.pages:
+                if multiple_pages:
+                    click.echo(
+                        click.style(
+                            f"---Page {page.page} Start---", fg="cyan", bold=True
+                        )
+                    )
+                click.echo(pretty_print_markdown(page.content))
+                if multiple_pages:
+                    click.echo(
+                        click.style(f"---Page {page.page} End---", fg="cyan", bold=True)
+                    )
+                click.echo("\n")
+
+        if stats:
+            click.echo(click.style("Processing Statistics:", fg="blue", bold=True))
+            click.echo(f"File Path: {file_path}")
+            click.echo(f"Completion Time: {result.completion_time:.2f} seconds")
+            click.echo(f"Total Pages Processed: {len(result.pages)}")
+            click.echo(f"Total Input Tokens: {result.input_tokens}")
+            click.echo(f"Total Output Tokens: {result.output_tokens}")
+            click.echo(f"Total Tokens: {result.input_tokens + result.output_tokens}")
+
+    except Exception as e:
+        error_message = str(e)
+        if "authentication error" in error_message.lower():
+            error_message = format_authentication_error(error_message, provider)
+        click.echo(click.style(f"Error: {error_message}", fg="red"))
         sys.exit(1)
 
 
