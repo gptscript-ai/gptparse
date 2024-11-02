@@ -47,6 +47,7 @@ httpcore = "1.0.6"
 markdown-it-py = "3.0.0"
 mistune = "3.0.2"
 pymupdf4llm = "^0.0.17"
+pycryptodome = "^3.21.0"
 
 [tool.poetry.scripts]
 gptparse = "gptparse.cli:main"
