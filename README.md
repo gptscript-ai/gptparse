@@ -17,6 +17,9 @@ gptparse vision example.pdf --output_file output.md
 # Convert a PDF using fast local processing (no VLM or internet connection required)
 gptparse fast example.pdf --output_file output.md
 
+# Convert using hybrid mode (combines fast and vision for better results)
+gptparse hybrid example.pdf --output_file output.md
+
 # Convert an image
 gptparse vision screenshot.png --output_file output.md
 ```
@@ -24,7 +27,7 @@ gptparse vision screenshot.png --output_file output.md
 ## Features
 
 - **Convert PDFs and Images to Markdown**: Transform PDF documents and image files (PNG, JPG, JPEG) into Markdown format, preserving the structure and content.
-- **Multiple Parsing Methods**: Choose between using Vision Language Models (VLMs) for high-fidelity conversion or fast local processing for quick results without AI.
+- **Multiple Parsing Methods**: Choose between using Vision Language Models (VLMs) for high-fidelity conversion, fast local processing for quick results, or hybrid mode for enhanced accuracy.
 - **Support for Multiple AI Providers**: Seamlessly integrate with OpenAI, Anthropic, and Google AI models, selecting the one that best fits your needs.
 - **Python Library and CLI Application**: Use GPTParse within your Python applications or interact with it through the command line.
 - **Customizable Processing Options**: Configure concurrency levels, select specific pages to process, and customize system prompts to tailor the output.
@@ -43,6 +46,7 @@ gptparse vision screenshot.png --output_file output.md
   - [Using GPTParse via the CLI](#using-gptparse-via-the-cli)
     - [Vision Mode](#vision-mode)
     - [Fast Mode](#fast-mode)
+    - [Hybrid Mode](#hybrid-mode)
 - [Available Models and Providers](#available-models-and-providers)
   - [OpenAI Models](#openai-models)
   - [Anthropic Models](#anthropic-models)
@@ -114,6 +118,9 @@ gptparse vision example.pdf --output_file output.md
 
 # Convert a PDF to Markdown using fast local processing (no VLM or internet connection required)
 gptparse fast example.pdf --output_file output.md
+
+# Convert using hybrid mode (combines fast and vision for better results)
+gptparse hybrid example.pdf --output_file output.md
 ```
 
 ## Usage
@@ -183,8 +190,11 @@ import os
 # For AI-powered vision processing
 os.environ["OPENAI_API_KEY"] = "your-openai-api-key"
 from gptparse.modes.vision import vision
+from gptparse.modes.fast import fast
+from gptparse.modes.hybrid import hybrid
 
-result = vision(
+# Using vision mode
+vision_result = vision(
     concurrency=10,
     file_path="example.pdf",
     model="gpt-4o",
@@ -194,25 +204,28 @@ result = vision(
     provider="openai",
 )
 
-# For fast local processing (no AI required)
-from gptparse.modes.fast import fast
-
-result = fast(
+# Using fast mode (no AI required)
+fast_result = fast(
     file_path="example.pdf",
     output_file="output.md",
     select_pages=None,
 )
 
-# Access the result
-print(f"Processed {len(result.pages)} pages in {result.completion_time:.2f} seconds.")
-for page in result.pages:
-    print(f"Page {page.page}:")
-    print(page.content)
+# Using hybrid mode (combines fast and vision)
+hybrid_result = hybrid(
+    concurrency=10,
+    file_path="example.pdf",
+    model="gpt-4o",
+    output_file="output.md",
+    custom_system_prompt=None,
+    select_pages=None,
+    provider="openai",
+)
 ```
 
 ### Using GPTParse via the CLI
 
-When using the command-line interface, you have two modes available:
+When using the command-line interface, you have three modes available:
 
 1. **Vision Mode** - Uses AI models for high-quality conversion:
 
@@ -225,6 +238,13 @@ gptparse vision example.pdf --output_file output.md --provider openai
 
 ```bash
 gptparse fast example.pdf --output_file output.md
+```
+
+3. **Hybrid Mode** - Combines fast and vision modes for enhanced results:
+
+```bash
+export OPENAI_API_KEY="your-openai-api-key"
+gptparse hybrid example.pdf --output_file output.md --provider openai
 ```
 
 #### Vision Mode Options
@@ -242,6 +262,15 @@ gptparse fast example.pdf --output_file output.md
 - `--output_file`: Output file name (must have a `.md` or `.txt` extension).
 - `--select_pages`: Pages to process (e.g., `"1,3-5,10"`). Only applicable for PDF files.
 - `--stats`: Display basic processing statistics.
+
+#### Hybrid Mode Options
+- `--concurrency`: Number of concurrent processes (default: value set in configuration or 10).
+- `--model`: Vision language model to use (overrides configured default).
+- `--output_file`: Output file name (must have a `.md` or `.txt` extension).
+- `--custom_system_prompt`: Custom system prompt for the language model.
+- `--select_pages`: Pages to process (e.g., `"1,3-5,10"`). Only applicable for PDF files.
+- `--provider`: AI provider to use (`openai`, `anthropic`, `google`).
+- `--stats`: Display detailed statistics after processing.
 
 ## Available Models and Providers
 
