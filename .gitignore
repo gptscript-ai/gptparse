@@ -163,3 +163,37 @@ cython_debug/
 
 # Mac
 .DS_Store
+
+# Python cache files
+__pycache__/
+*.py[cod]
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Virtual environments
+venv/
+env/
+
+# IDE-specific files
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+tmp.md
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Compiled Python files
+*.pyc
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+gptparse-docs
+*.ipynb
