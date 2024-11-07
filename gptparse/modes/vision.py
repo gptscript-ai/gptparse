@@ -46,6 +46,7 @@ def vision(
     custom_system_prompt: Optional[str] = None,
     select_pages: Optional[str] = None,
     provider: str = "openai",
+    prediction: Optional[dict] = None,
 ) -> GPTParseOutput:
     try:
         start_time = time.time()
@@ -112,10 +113,25 @@ def vision(
         cb = BatchCallback(len(batch_messages), f"{provider}/{model}")
         try:
             # Process batch messages
-            results = ai_model.batch(
-                batch_messages,
-                config=RunnableConfig(max_concurrency=concurrency, callbacks=[cb]),
-            )
+            if (
+                provider == "openai"
+                and model
+                and model.startswith("gpt-4o")
+                and prediction
+            ):
+                results = ai_model.batch(
+                    batch_messages,
+                    config=RunnableConfig(
+                        max_concurrency=concurrency,
+                        callbacks=[cb],
+                        prediction=prediction,
+                    ),
+                )
+            else:
+                results = ai_model.batch(
+                    batch_messages,
+                    config=RunnableConfig(max_concurrency=concurrency, callbacks=[cb]),
+                )
         except Exception as e:
             error_msg = str(e)
             if any(

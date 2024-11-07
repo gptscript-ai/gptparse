@@ -49,6 +49,7 @@ def hybrid(
             "   - Ensure all content matches the image\n"
             "   - Confirm proper markdown formatting\n"
             "   - Check structural elements (tables, lists, etc.)\n\n"
+            "   - Use JSON instead of tables if the table columns are hard to format"
             "# Reference OCR Text\n\n"
         )
 
@@ -56,7 +57,15 @@ def hybrid(
         for page in fast_result.pages:
             enhanced_prompt += f"\n---Page {page.page}---\n{page.content}\n"
 
-        # Step 3: Run vision mode with enhanced prompt
+        # Step 3: Run vision mode with enhanced prompt and prediction if using GPT-4o
+        prediction = None
+        if provider == "openai" and model and model.startswith("gpt-4o"):
+            # Use the fast mode results as prediction for GPT-4o
+            prediction = {
+                "type": "content",
+                "content": "\n".join(page.content for page in fast_result.pages),
+            }
+
         vision_result = vision(
             concurrency=concurrency,
             file_path=file_path,
@@ -65,6 +74,7 @@ def hybrid(
             custom_system_prompt=enhanced_prompt,
             select_pages=select_pages,
             provider=provider,
+            prediction=prediction,  # Pass prediction to vision mode
         )
 
         return vision_result
