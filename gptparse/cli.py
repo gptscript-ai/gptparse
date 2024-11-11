@@ -406,5 +406,53 @@ def hybrid(
         sys.exit(1)
 
 
+@main.command()
+@click.argument("file_path", type=click.Path(exists=True, resolve_path=True))
+@click.option("--output_file", help="Output file name (with .md or .txt extension)")
+@click.option("--abort-on-error", is_flag=True, help="Abort on first error")
+def ocr(file_path, output_file, abort_on_error):
+    """Convert PDF files to text using OCR."""
+
+    # Validate output file extension
+    if output_file:
+        _, ext = os.path.splitext(output_file)
+        if ext.lower() not in (".md", ".txt"):
+            click.echo(
+                click.style(
+                    "Error: Output file must have a .md or .txt extension", fg="red"
+                )
+            )
+            sys.exit(1)
+
+    # Validate input file
+    _, input_ext = os.path.splitext(file_path)
+    input_ext = input_ext.lower()
+    if input_ext not in (".pdf", ".png", ".jpg", ".jpeg"):
+        click.echo(
+            click.style(
+                "Error: Input file must be a PDF or image file (PNG, JPG)", fg="red"
+            )
+        )
+        sys.exit(1)
+
+    try:
+        from .handlers.docling_handler import DoclingHandler
+
+        # Create handler with file_path
+        handler = DoclingHandler(file_path=file_path, abort_on_error=abort_on_error)
+
+        result = handler.process(output_file)
+
+        if output_file:
+            click.echo(f"Output saved to {output_file}")
+        else:
+            click.echo(result)
+
+    except Exception as e:
+        click.echo(click.style(f"Error: {str(e)}", fg="red"))
+        if abort_on_error:
+            sys.exit(1)
+
+
 if __name__ == "__main__":
     main()
