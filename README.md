@@ -27,7 +27,7 @@ gptparse vision screenshot.png --output_file output.md
 ## Features
 
 - **Convert PDFs and Images to Markdown**: Transform PDF documents and image files (PNG, JPG, JPEG) into Markdown format, preserving the structure and content.
-- **Multiple Parsing Methods**: Choose between using Vision Language Models (VLMs) for high-fidelity conversion, fast local processing for quick results, or hybrid mode for enhanced accuracy.
+- **Multiple Parsing Methods**: Choose between using Vision Language Models (VLMs) for high-fidelity conversion, fast local processing for quick results, hybrid mode for enhanced accuracy, or OCR mode for direct text extraction.
 - **Support for Multiple AI Providers**: Seamlessly integrate with OpenAI, Anthropic, and Google AI models, selecting the one that best fits your needs.
 - **Python Library and CLI Application**: Use GPTParse within your Python applications or interact with it through the command line.
 - **Customizable Processing Options**: Configure concurrency levels, select specific pages to process, and customize system prompts to tailor the output.
@@ -47,6 +47,7 @@ gptparse vision screenshot.png --output_file output.md
     - [Vision Mode](#vision-mode)
     - [Fast Mode](#fast-mode)
     - [Hybrid Mode](#hybrid-mode)
+    - [OCR Mode](#ocr-mode)
 - [Available Models and Providers](#available-models-and-providers)
   - [OpenAI Models](#openai-models)
   - [Anthropic Models](#anthropic-models)
@@ -121,6 +122,9 @@ gptparse fast example.pdf --output_file output.md
 
 # Convert using hybrid mode (combines fast and vision for better results)
 gptparse hybrid example.pdf --output_file output.md
+
+# Convert using OCR mode (direct text extraction)
+gptparse ocr example.pdf --output_file output.md
 ```
 
 ## Usage
@@ -225,7 +229,7 @@ hybrid_result = hybrid(
 
 ### Using GPTParse via the CLI
 
-When using the command-line interface, you have three modes available:
+When using the command-line interface, you have four modes available:
 
 1. **Vision Mode** - Uses AI models for high-quality conversion:
 
@@ -246,6 +250,15 @@ gptparse fast example.pdf --output_file output.md
 export OPENAI_API_KEY="your-openai-api-key"
 gptparse hybrid example.pdf --output_file output.md --provider openai
 ```
+
+4. **OCR Mode** - Uses direct OCR processing for text extraction:
+
+```bash
+gptparse ocr example.pdf --output_file output.md
+```
+
+- `--output_file`: Output file name (must have a `.md` or `.txt` extension).
+- `--abort-on-error`: Stop processing if an error occurs (optional).
 
 #### Vision Mode Options
 
@@ -271,6 +284,15 @@ gptparse hybrid example.pdf --output_file output.md --provider openai
 - `--select_pages`: Pages to process (e.g., `"1,3-5,10"`). Only applicable for PDF files.
 - `--provider`: AI provider to use (`openai`, `anthropic`, `google`).
 - `--stats`: Display detailed statistics after processing.
+
+#### OCR Mode Options
+
+```bash
+gptparse ocr example.pdf --output_file output.md
+```
+
+- `--output_file`: Output file name (must have a `.md` or `.txt` extension).
+- `--abort-on-error`: Stop processing if an error occurs (optional).
 
 ## Available Models and Providers
 
@@ -372,6 +394,26 @@ Supported image formats:
 
 - PNG
 - JPG/JPEG
+
+### Processing with OCR
+
+To process a file using direct OCR:
+
+```bash
+# Process a PDF file with OCR
+gptparse ocr document.pdf --output_file output.md
+
+# Process an image with OCR
+gptparse ocr scan.png --output_file output.md
+
+# Process with abort-on-error flag
+gptparse ocr document.pdf --output_file output.md --abort-on-error
+```
+
+The OCR mode supports:
+- PDF documents
+- PNG images
+- JPG/JPEG images
 
 ## Contributing
 
