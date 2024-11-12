@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gptparse"
-version = "0.2.0"
+version = "0.3.0"
 description = "A tool for converting PDF documents to Markdown using OCR and vision language models"
 authors = ["Sanjay Nadhavajhala <sanjay@acorn.io>"]
 readme = "README.md"
