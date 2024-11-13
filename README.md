@@ -20,6 +20,9 @@ gptparse fast example.pdf --output_file output.md
 # Convert using hybrid mode (combines fast and vision for better results)
 gptparse hybrid example.pdf --output_file output.md
 
+# Convert using OCR mode (uses local deep learning model for text extraction)
+gptparse ocr example.pdf --output_file output.md
+
 # Convert an image
 gptparse vision screenshot.png --output_file output.md
 ```
@@ -28,6 +31,7 @@ gptparse vision screenshot.png --output_file output.md
 
 - **Convert PDFs and Images to Markdown**: Transform PDF documents and image files (PNG, JPG, JPEG) into Markdown format, preserving the structure and content.
 - **Multiple Parsing Methods**: Choose between using Vision Language Models (VLMs) for high-fidelity conversion, fast local processing for quick results, hybrid mode for enhanced accuracy, or OCR mode for direct text extraction.
+  - OCR processing powered by EasyOCR for fast and accurate text recognition
 - **Support for Multiple AI Providers**: Seamlessly integrate with OpenAI, Anthropic, and Google AI models, selecting the one that best fits your needs.
 - **Python Library and CLI Application**: Use GPTParse within your Python applications or interact with it through the command line.
 - **Customizable Processing Options**: Configure concurrency levels, select specific pages to process, and customize system prompts to tailor the output.
@@ -277,6 +281,7 @@ gptparse ocr example.pdf --output_file output.md
 - `--stats`: Display basic processing statistics.
 
 #### Hybrid Mode Options
+
 - `--concurrency`: Number of concurrent processes (default: value set in configuration or 10).
 - `--model`: Vision language model to use (overrides configured default).
 - `--output_file`: Output file name (must have a `.md` or `.txt` extension).
@@ -411,6 +416,7 @@ gptparse ocr document.pdf --output_file output.md --abort-on-error
 ```
 
 The OCR mode supports:
+
 - PDF documents
 - PNG images
 - JPG/JPEG images
